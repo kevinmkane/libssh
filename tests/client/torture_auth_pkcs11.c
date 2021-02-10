@@ -72,6 +72,7 @@ static int session_setup(void **state)
     struct passwd *pwd;
     bool b = false;
     int rc;
+    int port;
 
     pwd = getpwnam("bob");
     assert_non_null(pwd);
@@ -82,8 +83,14 @@ static int session_setup(void **state)
     s->ssh.session = ssh_new();
     assert_non_null(s->ssh.session);
 
-    ssh_options_set(s->ssh.session, SSH_OPTIONS_LOG_VERBOSITY, &verbosity);
-    ssh_options_set(s->ssh.session, SSH_OPTIONS_HOST, TORTURE_SSH_SERVER);
+    rc = ssh_options_set(s->ssh.session, SSH_OPTIONS_LOG_VERBOSITY, &verbosity);
+    assert_ssh_return_code(s->ssh.session, rc);
+    rc = ssh_options_set(s->ssh.session, SSH_OPTIONS_HOST, TORTURE_SSH_SERVER);
+    assert_ssh_return_code(s->ssh.session, rc);
+    port = atoi(TORTURE_SSH_PORT);
+    assert_true(port > 0);
+    rc = ssh_options_set(s->ssh.session, SSH_OPTIONS_PORT, &port);
+    assert_ssh_return_code(s->ssh.session, rc);
     /* Make sure no other configuration options from system will get used */
     rc = ssh_options_set(s->ssh.session, SSH_OPTIONS_PROCESS_CONFIG, &b);
     assert_ssh_return_code(s->ssh.session, rc);

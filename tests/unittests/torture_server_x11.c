@@ -67,7 +67,7 @@ static int teardown(void **state) {
 static const uint32_t x11_screen_number = 1;
 
 static void *client_thread(void *arg) {
-    unsigned int test_port = TEST_SERVER_PORT;
+    int test_port = TEST_SERVER_PORT;
     int rc;
     ssh_session session;
     ssh_channel channel;

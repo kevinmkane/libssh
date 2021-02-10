@@ -266,7 +266,7 @@ int torture_terminate_process(const char *pidfile)
 
 ssh_session torture_ssh_session(struct torture_state *s,
                                 const char *host,
-                                const unsigned int *port,
+                                const int *port,
                                 const char *user,
                                 const char *password) {
     ssh_session session;
@@ -298,7 +298,7 @@ ssh_session torture_ssh_session(struct torture_state *s,
         goto failed;
     }
 
-    if (port != NULL) {
+    if (port != NULL && *port > 0) {
       if (ssh_options_set(session, SSH_OPTIONS_PORT, port) < 0) {
         goto failed;
       }
@@ -606,12 +606,14 @@ void torture_setup_socket_dir(void **state)
 
     snprintf(s->srv_config, len, "%s/%s", p, TORTURE_SSHD_CONFIG);
 
+#ifdef TORTURE_USE_SOCKET_WRAPPER
     setenv("SOCKET_WRAPPER_DIR", p, 1);
     setenv("SOCKET_WRAPPER_DEFAULT_IFACE", "170", 1);
     env = getenv("TORTURE_GENERATE_PCAP");
     if (env != NULL && env[0] == '1') {
         setenv("SOCKET_WRAPPER_PCAP_FILE", s->pcap_file, 1);
     }
+#endif
 
     *state = s;
 }
@@ -749,8 +751,8 @@ static void torture_setup_create_sshd_config(void **state, bool pam)
         "/usr/lib/openssh/sftp-server",     /* Debian */
     };
     const char config_string[]=
-             "Port 22\n"
-             "ListenAddress 127.0.0.10\n"
+             "Port " TORTURE_SSH_PORT "\n"
+             "ListenAddress " TORTURE_SSH_SERVER "\n"
              "%s %s\n" /* ed25519 HostKey */
 #ifdef HAVE_DSA
              "%s %s\n" /* DSA HostKey */
@@ -969,7 +971,7 @@ static int torture_wait_for_daemon(unsigned int seconds)
     ssh_timestamp_init(&start);
 
     while (!ssh_timeout_elapsed(&start, seconds * 1000)) {
-        rc = system(SSH_PING_EXECUTABLE " " TORTURE_SSH_SERVER);
+        rc = system(SSH_PING_EXECUTABLE " " TORTURE_SSH_SERVER " " TORTURE_SSH_PORT);
         if (rc == 0) {
             return 0;
         }
@@ -1045,11 +1047,16 @@ void torture_setup_libssh_server(void **state, const char *server_path)
 
     /* Write the environment setting */
     printed = snprintf(env, sizeof(env),
+#ifdef TORTURE_USE_SOCKET_WRAPPER
                        "SOCKET_WRAPPER_DIR=%s "
                        "SOCKET_WRAPPER_DEFAULT_IFACE=10 "
+#endif
                        "LD_PRELOAD=%s "
                        "%s",
-                       s->socket_dir, ld_preload, force_fips);
+#ifdef TORTURE_USE_SOCKET_WRAPPER
+                       s->socket_dir,
+#endif
+                       ld_preload, force_fips);
     if (printed < 0) {
         fail_msg("Failed to print env!");
         /* Unreachable */
@@ -1109,7 +1116,9 @@ void torture_setup_libssh_server(void **state, const char *server_path)
         __builtin_unreachable();
     default:
         /* The parent continues the execution of the tests */
+#ifdef TORTURE_USE_SOCKET_WRAPPER
         setenv("SOCKET_WRAPPER_DEFAULT_IFACE", "21", 1);
+#endif
         unsetenv("PAM_WRAPPER");
 
         /* Wait until the server is ready to accept connections */
@@ -1126,7 +1135,9 @@ static int torture_start_sshd_server(void **state)
     int rc;
 
     /* Set the default interface for the server */
+#ifdef TORTURE_USE_SOCKET_WRAPPER
     setenv("SOCKET_WRAPPER_DEFAULT_IFACE", "10", 1);
+#endif
     setenv("PAM_WRAPPER", "1", 1);
 
     snprintf(sshd_start_cmd, sizeof(sshd_start_cmd),
@@ -1136,7 +1147,9 @@ static int torture_start_sshd_server(void **state)
     rc = system(sshd_start_cmd);
     assert_return_code(rc, errno);
 
+#ifdef TORTURE_USE_SOCKET_WRAPPER
     setenv("SOCKET_WRAPPER_DEFAULT_IFACE", "21", 1);
+#endif
     unsetenv("PAM_WRAPPER");
 
     /* Wait until the sshd is ready to accept connections */

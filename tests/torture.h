@@ -49,7 +49,15 @@
     assert_true(code >= 0)
 #endif /* assert_return_code */
 
+#define TORTURE_USE_SOCKET_WRAPPER
+
+#ifdef TORTURE_USE_SOCKET_WRAPPER
 #define TORTURE_SSH_SERVER "127.0.0.10"
+#define TORTURE_SSH_PORT "22"
+#else
+#define TORTURE_SSH_SERVER "127.0.0.1"
+#define TORTURE_SSH_PORT "2222"
+#endif
 #define TORTURE_SSH_USER_BOB "bob"
 #define TORTURE_SSH_USER_BOB_PASSWORD "secret"
 
@@ -103,7 +111,7 @@ int torture_libssh_verbosity(void);
 
 ssh_session torture_ssh_session(struct torture_state *s,
                                 const char *host,
-                                const unsigned int *port,
+                                const int *port,
                                 const char *user,
                                 const char *password);
 

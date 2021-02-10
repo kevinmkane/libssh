@@ -21,6 +21,7 @@ clients must be made or how a client should react.
 #include <stdbool.h>
 #include <libssh/libssh.h>
 #include <libssh/kex.h>
+#include <libssh/session.h>
 
 int main(int argc, char **argv)
 {
@@ -28,12 +29,23 @@ int main(int argc, char **argv)
     ssh_session session = NULL;
     const char *hostkeys = NULL;
     int rc = 1;
+    int port;
 
     bool process_config = false;
 
     if (argc < 1 || argv[1] == NULL) {
         fprintf(stderr, "Error: Need an argument (hostname)\n");
         goto out;
+    }
+
+    if (argc < 2 || argv[2] == NULL) {
+        port = 22;
+    } else {
+        port = atoi(argv[2]);
+        if (port <= 0) {
+            fprintf(stderr, "Port is not valid: %s\n", argv[2]);
+            goto out;
+        }
     }
 
     ssh_init();
@@ -46,6 +58,12 @@ int main(int argc, char **argv)
     rc = ssh_options_set(session, SSH_OPTIONS_HOST, argv[1]);
     if (rc < 0) {
         goto out;
+    }
+
+    rc = ssh_options_set(session, SSH_OPTIONS_PORT, &port);
+    if (rc < 0) {
+        goto out;
+
     }
 
     /* The automatic username is not available under uid wrapper */

@@ -48,6 +48,7 @@ static int session_setup(void **state)
     struct torture_state *s = *state;
     struct passwd *pwd;
     int rc;
+    int port;
 
     pwd = getpwnam("bob");
     assert_non_null(pwd);
@@ -55,9 +56,12 @@ static int session_setup(void **state)
     rc = setuid(pwd->pw_uid);
     assert_return_code(rc, errno);
 
+    port = atoi(TORTURE_SSH_PORT);
+    assert_true(port > 0);
+
     s->ssh.session = torture_ssh_session(s,
                                          TORTURE_SSH_SERVER,
-                                         NULL,
+                                         &port,
                                          TORTURE_SSH_USER_ALICE,
                                          NULL);
     assert_non_null(s->ssh.session);

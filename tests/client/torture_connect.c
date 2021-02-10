@@ -87,9 +87,16 @@ static void torture_connect_nonblocking(void **state) {
     struct torture_state *s = *state;
     ssh_session session = s->ssh.session;
     int rc;
+    int port;
 
     rc = ssh_options_set(session, SSH_OPTIONS_HOST, TORTURE_SSH_SERVER);
     assert_ssh_return_code(session, rc);
+
+    port = atoi(TORTURE_SSH_PORT);
+    assert_true(port > 0);
+    rc = ssh_options_set(session, SSH_OPTIONS_PORT, &port);
+    assert_ssh_return_code(session, rc);
+
     ssh_set_blocking(session,0);
 
     do {
@@ -135,8 +142,14 @@ static void torture_connect_double(void **state) {
     ssh_session session = s->ssh.session;
 
     int rc;
+    int port;
 
     rc = ssh_options_set(session, SSH_OPTIONS_HOST, TORTURE_SSH_SERVER);
+    assert_ssh_return_code(session, rc);
+
+    port = atoi(TORTURE_SSH_PORT);
+    assert_true(port > 0);
+    rc = ssh_options_set(session, SSH_OPTIONS_PORT, &port);
     assert_ssh_return_code(session, rc);
 
     rc = ssh_connect(session);
@@ -165,11 +178,14 @@ static void torture_connect_socket(void **state) {
 
     int rc;
     int sock_fd = 0;
+    int port = atol(TORTURE_SSH_PORT);
     struct sockaddr_in server_addr = {
         .sin_family = AF_INET,
-        .sin_port = htons(22),
+        .sin_port = htons(port),
         .sin_addr.s_addr = inet_addr(TORTURE_SSH_SERVER),
     };
+
+    assert_true(port > 0);
 
     sock_fd = socket(AF_INET, SOCK_STREAM, 0);
     assert_true(sock_fd > 2);

@@ -62,6 +62,7 @@ static int session_setup(void **state)
     int verbosity = torture_libssh_verbosity();
     struct passwd *pwd;
     int rc;
+    int port;
 
     bool process_config = false;
 
@@ -82,6 +83,12 @@ static int session_setup(void **state)
     assert_ssh_return_code(s->ssh.session, rc);
 
     rc = ssh_options_set(s->ssh.session, SSH_OPTIONS_HOST, TORTURE_SSH_SERVER);
+    assert_ssh_return_code(s->ssh.session, rc);
+
+    port = atoi(TORTURE_SSH_PORT);
+    assert_true(port > 0);
+
+    rc = ssh_options_set(s->ssh.session, SSH_OPTIONS_PORT, &port);
     assert_ssh_return_code(s->ssh.session, rc);
 
     rc = ssh_options_set(s->ssh.session,
@@ -317,6 +324,7 @@ static void torture_knownhosts_unknown(void **state)
     char *known_hosts_file = NULL;
     enum ssh_known_hosts_e found;
     int rc;
+    int port;
 
     snprintf(tmp_file,
              sizeof(tmp_file),
@@ -351,8 +359,14 @@ static void torture_knownhosts_unknown(void **state)
 
     s->ssh.session = session;
 
-    rc = ssh_options_set(s->ssh.session, SSH_OPTIONS_HOST, TORTURE_SSH_SERVER);
-    assert_ssh_return_code(s->ssh.session, rc);
+    rc = ssh_options_set(session, SSH_OPTIONS_HOST, TORTURE_SSH_SERVER);
+    assert_ssh_return_code(session, rc);
+
+    port = atoi(TORTURE_SSH_PORT);
+    assert_true(port > 0);
+
+    rc = ssh_options_set(session, SSH_OPTIONS_PORT, &port);
+    assert_ssh_return_code(session, rc);
 
     rc = ssh_options_set(s->ssh.session,
                          SSH_OPTIONS_USER,
@@ -382,6 +396,7 @@ static void torture_knownhosts_conflict(void **state)
     enum ssh_known_hosts_e found;
     FILE *file = NULL;
     int rc;
+    int port;
 
     snprintf(tmp_file,
              sizeof(tmp_file),
@@ -425,6 +440,12 @@ static void torture_knownhosts_conflict(void **state)
     s->ssh.session = session;
 
     rc = ssh_options_set(session, SSH_OPTIONS_HOST, TORTURE_SSH_SERVER);
+    assert_ssh_return_code(session, rc);
+
+    port = atoi(TORTURE_SSH_PORT);
+    assert_true(port > 0);
+
+    rc = ssh_options_set(session, SSH_OPTIONS_PORT, &port);
     assert_ssh_return_code(session, rc);
 
     rc = ssh_options_set(session, SSH_OPTIONS_KNOWNHOSTS, known_hosts_file);

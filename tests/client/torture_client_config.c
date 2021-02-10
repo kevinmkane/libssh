@@ -35,6 +35,7 @@ static int setup_config_files(void **state)
     struct passwd *pwd;
     char *filename = NULL;
     int rc;
+    int port;
 
     /* Work under the bob's UID to be able to load his configuration file */
     pwd = getpwnam("bob");
@@ -53,8 +54,14 @@ static int setup_config_files(void **state)
     torture_write_file(LIBSSH_SSH_CONFIG, "Ciphers "CIPHERS2"\nTestBogus2\n");
 
     verbosity = torture_libssh_verbosity();
-    ssh_options_set(s->ssh.session, SSH_OPTIONS_LOG_VERBOSITY, &verbosity);
-    ssh_options_set(s->ssh.session, SSH_OPTIONS_HOST, TORTURE_SSH_SERVER);
+    rc = ssh_options_set(s->ssh.session, SSH_OPTIONS_LOG_VERBOSITY, &verbosity);
+    assert_ssh_return_code(s->ssh.session, rc);
+    rc = ssh_options_set(s->ssh.session, SSH_OPTIONS_HOST, TORTURE_SSH_SERVER);
+    assert_ssh_return_code(s->ssh.session, rc);
+    port = atoi(TORTURE_SSH_PORT);
+    assert_true(port > 0);
+    rc = ssh_options_set(s->ssh.session, SSH_OPTIONS_PORT, &port);
+    assert_ssh_return_code(s->ssh.session, rc);
 
     return 0;
 }
