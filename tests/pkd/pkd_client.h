@@ -41,8 +41,18 @@
 #define OPENSSH_CMD \
     OPENSSH_CMD_START(OPENSSH_HOSTKEY_ALGOS) OPENSSH_CMD_END
 
-#define OPENSSH_KEX_CMD(kexalgo) \
+#define OPENSSH_KEX_CMD_END(kexalgo) \
     OPENSSH_CMD_START(OPENSSH_HOSTKEY_ALGOS) "-o KexAlgorithms=" kexalgo " " OPENSSH_CMD_END
+
+#define INTERACTIVE_DEBUG
+
+#ifdef INTERACTIVE_DEBUG
+#define OPENSSH_KEX_CMD(kexalgo) \
+    "./interactivedebug.sh " OPENSSH_KEX_CMD_END(kexalgo)
+#else
+#define OPENSSH_KEX_CMD(kexalgo) \
+    OPENSSH_KEX_CMD_END(kexalgo)
+#endif
 
 #define OPENSSH_CIPHER_CMD(ciphers) \
     OPENSSH_CMD_START(OPENSSH_HOSTKEY_ALGOS) "-c " ciphers " " OPENSSH_CMD_END
