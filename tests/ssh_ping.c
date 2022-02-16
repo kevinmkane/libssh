@@ -30,6 +30,7 @@ int main(int argc, char **argv)
     const char *hostkeys = NULL;
     int rc = 1;
     int port;
+    int level = 5;
 
     bool process_config = false;
 
@@ -74,6 +75,11 @@ int main(int argc, char **argv)
 
     /* Ignore system-wide configurations when simply trying to reach host */
     rc = ssh_options_set(session, SSH_OPTIONS_PROCESS_CONFIG, &process_config);
+    if (rc < 0) {
+        goto out;
+    }
+
+    rc = ssh_options_set(session, SSH_OPTIONS_LOG_VERBOSITY, &level);
     if (rc < 0) {
         goto out;
     }
