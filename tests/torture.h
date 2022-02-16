@@ -49,7 +49,7 @@
     assert_true(code >= 0)
 #endif /* assert_return_code */
 
-#define TORTURE_USE_SOCKET_WRAPPER
+/* #define TORTURE_USE_SOCKET_WRAPPER */
 
 #ifdef TORTURE_USE_SOCKET_WRAPPER
 #define TORTURE_SSH_SERVER "127.0.0.10"
